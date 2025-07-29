@@ -79,10 +79,19 @@ def emotion_receiver():
         "neutral": "Nodding, he mumbled thanks, then turned away."
     },
     {
-        "neutral": "I don’t know why, but the weight of that glance lingered."
+        "neutral": "I kept thinking: what was in that envelope?"
     },
     {
-        "neutral": "The rain finally eased as the train pulled in."
+        "neutral": "A tax reminder? A phone bill? A doctor’s appointment?"
+    },
+    {
+        "neutral": "The rain finally eased as the train pulled in. I got on."
+    },
+    {
+        "neutral": "Life continued."
+    },
+    {
+        "neutral": "But sometimes, I still think of that man in the rain—and how we all carry something unseen."
     },
 ]
 

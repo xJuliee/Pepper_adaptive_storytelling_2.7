@@ -159,22 +159,64 @@ def emotion_receiver():
         "confused": "I don’t know why, but the weight of that glance lingered."
     },
     {
-        "neutral": "The rain finally eased as the train pulled in.",
-        "happy": "The rain finally eased as the train pulled in, promising new beginnings.",
-        "sad": "The rain finally eased as the train pulled in, but the sadness stayed.",
-        "angry": "The rain finally eased as the train pulled in, but anger lingered.",
-        "disgust": "The rain finally eased as the train pulled in, leaving a bitter taste.",
-        "fear": "The rain finally eased as the train pulled in, though fear lingered.",
-        "surprise": "The rain finally eased as the train pulled in, unexpectedly calm.",
-        "confused": "The rain finally eased as the train pulled in, leaving me confused."
+        "neutral": "I kept thinking: what was in that envelope?",
+        "happy": "I kept thinking: what was in that envelope?",
+        "sad": "I kept thinking: what was in that envelope?",
+        "angry": "I kept thinking: what was in that envelope?",
+        "disgust": "I kept thinking: what was in that envelope?",
+        "fear": "I kept thinking: what was in that envelope?",
+        "surprise": "I kept thinking: what was in that envelope?",
+        "confused": "I kept thinking: what was in that envelope?"
+    },
+    {
+        "neutral": "A tax reminder? A phone bill? A doctor’s appointment?",
+        "happy": "A wedding invitation? A message from an old friend? A long-awaited “yes”?",
+        "sad": "A job rejection? A goodbye? A chance missed?",
+        "angry": "An unfair accusation? A broken promise? A final warning?",
+        "disgust": "A cruel confession? A lie in ink? A betrayal?",
+        "fear": "A negative medical result? A notice of eviction? A threat?",
+        "surprise": "A forgotten letter? A secret revealed? A sudden offer?",
+        "confused": "A message half-finished? A name he didn’t know? A letter meant for someone else?"
+    },
+    {
+        "neutral": "The rain finally eased as the train pulled in. I got on.",
+        "happy": "The rain finally eased as the train pulled in. I got on with a smile.",
+        "sad": "The rain finally eased as the train pulled in. I got on with a heavy heart.",
+        "angry": "The rain finally eased as the train pulled in. I got on, fists clenched.",
+        "disgust": "The rain finally eased as the train pulled in. I got on, reluctantly.",
+        "fear": "The rain finally eased as the train pulled in. I got on without looking back.",
+        "surprise": "The rain finally eased as the train pulled in. I got on, still reeling.",
+        "confused": "The rain finally eased as the train pulled in. I got on… the wrong one."
+    },
+    {
+        "neutral": "Life continued.",
+        "happy": "Life continued.",
+        "sad": "Life continued.",
+        "angry": "Life continued.",
+        "disgust": "Life continued.",
+        "fear": "Life continued.",
+        "surprise": "Life continued.",
+        "confused": "Life continued."
+    },
+    {
+        "neutral": "But sometimes, I still think of that man in the rain—and how we all carry something unseen.",
+        "happy": "But sometimes, I still think of that man in the rain—and how we all carry something worth sharing.",
+        "sad": "But sometimes, I still think of that man in the rain—and how we all carry something quietly aching inside.",
+        "angry": "But sometimes, I still think of that man in the rain—and how we all carry something waiting to explode.",
+        "disgust": "But sometimes, I still think of that man in the rain—and how we all carry something we’d rather forget.",
+        "fear": "But sometimes, I still think of that man in the rain—and how we all carry something we’re afraid to face.",
+        "surprise": "But sometimes, I still think of that man in the rain—and how we all carry something we never expected.",
+        "confused": "But sometimes, I still think of that man in the rain—and how we all carry something we can’t quite name."
     },
 ]
 
-    sentence_index = 0  # define globally
+    sentence_index = 0
+    last_spoken_time = 0
+    min_delay_between_sentences = 3.0
+    last_emotion = None
+    same_emotion_count = 0
 
     try:
-        last_spoken_time = 0
-        min_delay_between_sentences = 3.0  # seconds (adjust as needed)
         while True:
             conn, addr = server_socket.accept()
             try:
@@ -186,15 +228,22 @@ def emotion_receiver():
                         emotion = data.strip().lower()
 
                     print("[Emotion Receiver] Received emotion:", emotion)
-
-                    global sentence_index
                     current_time = time.time()
 
-                    if current_time - last_spoken_time < min_delay_between_sentences:
-                        print("[Emotion Receiver] Waiting to speak next sentence...")
-                        continue  # Don't proceed yet
+                    # Update emotion repetition counter
+                    if emotion == last_emotion:
+                        same_emotion_count += 1
+                    else:
+                        same_emotion_count = 1
+                        last_emotion = emotion
 
-                    if tts and sentence_index < len(emotion_to_phrase):
+                    should_speak = False
+                    if same_emotion_count >= 5 and current_time - last_spoken_time >= min_delay_between_sentences:
+                        should_speak = True
+                    elif same_emotion_count == 1 and current_time - last_spoken_time >= min_delay_between_sentences:
+                        should_speak = True
+
+                    if should_speak and tts and sentence_index < len(emotion_to_phrase):
                         tags = get_speech_tags(emotion)
                         sentence_block = emotion_to_phrase[sentence_index]
                         phrase = sentence_block.get(emotion, sentence_block.get("neutral", ""))
@@ -215,12 +264,16 @@ def emotion_receiver():
 
                         try:
                             tts.say(speech)
-                            last_spoken_time = current_time  # update time
+                            last_spoken_time = current_time
                             sentence_index += 1
+                            same_emotion_count = 0  # reset after speaking
                             if sentence_index >= len(emotion_to_phrase):
                                 print("[Emotion Receiver] End of story reached.")
                         except Exception as e:
                             print("[Emotion Receiver] TTS say error:", e)
+                    else:
+                        print("[Emotion Receiver] Waiting for new emotion or enough repetition...")
+
             except Exception as e:
                 print("[Emotion Receiver] Error during connection:", e)
             finally:
@@ -230,6 +283,7 @@ def emotion_receiver():
     finally:
         server_socket.close()
 
+
 # === Start Emotion Receiver Thread ===
 emotion_thread = threading.Thread(target=emotion_receiver)
 emotion_thread.setDaemon(True)
@@ -237,19 +291,15 @@ emotion_thread.start()
 
 # === Start Video Streaming to Laptop ===
 try:
-    # Disable autonomous behavior
     awareness = ALProxy("ALBasicAwareness", PEPPER_IP, PEPPER_PORT)
     awareness.stopAwareness()
 
-    # Optional: Stop any tracking behavior
     tracker = ALProxy("ALTracker", PEPPER_IP, PEPPER_PORT)
     tracker.stopTracker()
 
-    # Subscribe to camera
     video_proxy = ALProxy("ALVideoDevice", PEPPER_IP, PEPPER_PORT)
     capture_id = video_proxy.subscribeCamera(camera_name, 0, resolution, color_space, fps)
 
-    # Connect to laptop
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((LAPTOP_IP, LAPTOP_PORT))
     print("[Video Sender] Connected to laptop at", LAPTOP_IP, LAPTOP_PORT)
@@ -265,19 +315,15 @@ try:
         height = image[1]
         array = image[6]
 
-        # Convert raw bytes to numpy array
         np_arr = np.frombuffer(array, np.uint8)
         img = np_arr.reshape((height, width, 3))
 
-        # Encode frame as JPEG
         result, jpg = cv2.imencode('.jpg', img)
         if not result:
             print("[Video Sender] Failed to encode frame")
             continue
 
         jpg_bytes = jpg.tostring()
-
-        # Send JPEG size header and frame
         sock.sendall(struct.pack(">I", len(jpg_bytes)))
         sock.sendall(jpg_bytes)
 
