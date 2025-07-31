@@ -38,7 +38,7 @@ except Exception as e:
 def get_speech_tags(emotion):
     settings = {
         "happy":     {"vct":150, "rspd":100, "vol":80, "pau":100},
-        "sad":       {"vct":80,  "rspd":70,  "vol":56,  "pau":1000},
+        "sad":       {"vct":80,  "rspd":70,  "vol":65,  "pau":1000},
         "angry":     {"vct":60,  "rspd":100, "vol":100, "pau":100},
         "surprise":  {"vct":130, "rspd":100, "vol":88, "pau":300},
         "fear":      {"vct":90,  "rspd":80,  "vol":72,  "pau":700},
