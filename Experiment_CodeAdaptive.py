@@ -291,11 +291,18 @@ emotion_thread.start()
 
 # === Start Video Streaming to Laptop ===
 try:
+    # Stop Basic Awareness (prevents autonomous head/body motion)
     awareness = ALProxy("ALBasicAwareness", PEPPER_IP, PEPPER_PORT)
     awareness.stopAwareness()
 
+    # Stop tracking and unregister any previous targets
     tracker = ALProxy("ALTracker", PEPPER_IP, PEPPER_PORT)
     tracker.stopTracker()
+    tracker.unregisterAllTargets()
+
+    # Set head to face forward
+    motion = ALProxy("ALMotion", PEPPER_IP, PEPPER_PORT)
+    motion.setAngles(["HeadYaw", "HeadPitch"], [0.0, 0.0], 0.2)  # Head forward
 
     video_proxy = ALProxy("ALVideoDevice", PEPPER_IP, PEPPER_PORT)
     capture_id = video_proxy.subscribeCamera(camera_name, 0, resolution, color_space, fps)
