@@ -53,7 +53,7 @@ emotion_animations = {
         "^start(animations/Stand/Gestures/GoToStance_Enumeration_Center)",
         "^start(animations/Stand/Gestures/GoToStance_Negation_Center)"
     ],
-    "surprised": [
+    "surprise": [
         "^start(animations/Stand/Gestures/LittleArmsBump_1)",
         "^start(animations/Stand/Gestures/StrongBothArmsUpAndDown_LeanLeft_1)",
         "^start(animations/Stand/Gestures/BothArmsUpAndDown_HeadShake_1)"
@@ -90,7 +90,7 @@ def get_speech_tags(emotion):
         "happy": {"vct": 150, "rspd": 100, "vol": 80, "pau": 100},
         "sad": {"vct": 80, "rspd": 70, "vol": 56, "pau": 1000},
         "angry": {"vct": 60, "rspd": 100, "vol": 100, "pau": 100},
-        "surprised": {"vct": 130, "rspd": 100, "vol": 88, "pau": 300},
+        "surprise": {"vct": 130, "rspd": 100, "vol": 88, "pau": 300},
         "fear": {"vct": 90, "rspd": 80, "vol": 72, "pau": 700},
         "confused": {"vct": 100, "rspd": 90, "vol": 72, "pau": 500},
         "neutral": {"vct": 100, "rspd": 100, "vol": 80, "pau": 100},
